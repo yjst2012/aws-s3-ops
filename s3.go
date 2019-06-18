@@ -24,7 +24,6 @@ func main() {
 			"Example: go run s3.go my-test-bucket my-upload-file\n")
 		os.Exit(1)
 	}
-
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
@@ -45,34 +44,27 @@ func main() {
 
 func listMyBuckets(svc *s3.S3) {
 	result, err := svc.ListBuckets(nil)
-
 	if err != nil {
 		exitErrorf("Unable to list buckets, %v", err)
 	}
-
 	fmt.Println("My buckets now are:")
-
 	for _, b := range result.Buckets {
 		fmt.Printf(aws.StringValue(b.Name) + "\n")
 	}
-
 	fmt.Printf("\n")
 }
 
 func createMyBucket(svc *s3.S3, bucketName string, region string) {
 	fmt.Printf("\nCreating a new bucket named '" + bucketName + "'...\n\n")
-
 	_, err := svc.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
 		CreateBucketConfiguration: &s3.CreateBucketConfiguration{
 			LocationConstraint: aws.String(region),
 		},
 	})
-
 	if err != nil {
 		exitErrorf("Unable to create bucket, %v", err)
 	}
-
 	err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
 		Bucket: aws.String(bucketName),
 	})
@@ -80,7 +72,6 @@ func createMyBucket(svc *s3.S3, bucketName string, region string) {
 
 func deleteMyBucket(svc *s3.S3, bucketName string) {
 	fmt.Printf("\nDeleting the bucket named '" + bucketName + "'...\n\n")
-
 	_, err := svc.DeleteBucket(&s3.DeleteBucketInput{
 		Bucket: aws.String(bucketName),
 	})
@@ -92,24 +83,18 @@ func deleteMyBucket(svc *s3.S3, bucketName string) {
 	})
 }
 
-func copyObj(sess *session.Session, bucket, item, other string) {
+func copyObj(svc *s3.S3, bucket, item, other string) {
 
 	source := bucket + "/" + item
-
-	// Create S3 service client
-	svc := s3.New(sess)
-
 	// Copy the item
 	_, err := svc.CopyObject(&s3.CopyObjectInput{Bucket: aws.String(other), CopySource: aws.String(source), Key: aws.String(item)})
 	if err != nil {
 		exitErrorf("Unable to copy item from bucket %q to bucket %q, %v", bucket, other, err)
 	}
-
 	err = svc.WaitUntilObjectExists(&s3.HeadObjectInput{Bucket: aws.String(other), Key: aws.String(item)})
 	if err != nil {
 		exitErrorf("Error occurred while waiting for item %q to be copied to bucket %q, %v", bucket, item, other, err)
 	}
-
 	fmt.Printf("Item %q successfully copied from bucket %q to bucket %q\n", item, bucket, other)
 }
 
@@ -120,21 +105,17 @@ func uploadObj(svc *s3.S3, bucket, filename string) {
 		exitErrorf("Unable to open file %q, %v", err)
 	}
 	defer file.Close()
-
 	// Setup the S3 Upload Manager
 	uploader := s3manager.NewUploaderWithClient(svc)
-
 	// Upload the file's body to S3 bucket as an object with the key being the same as the filename.
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(filename),
 		Body:   file,
 	})
-
 	if err != nil {
 		exitErrorf("Unable to upload %q to %q, %v", filename, bucket, err)
 	}
-
 	fmt.Printf("Successfully uploaded %q to %q\n", filename, bucket)
 }
 
@@ -145,7 +126,6 @@ func listObj(svc *s3.S3, bucket string) {
 	if err != nil {
 		exitErrorf("Unable to list items in bucket %q, %v", bucket, err)
 	}
-
 	for _, item := range resp.Contents {
 		fmt.Println("Name:         ", *item.Key)
 		fmt.Println("Last modified:", *item.LastModified)
@@ -153,7 +133,6 @@ func listObj(svc *s3.S3, bucket string) {
 		fmt.Println("Storage class:", *item.StorageClass)
 		fmt.Println("")
 	}
-
 	fmt.Println("Found", len(resp.Contents), "items in bucket", bucket)
 	fmt.Println("")
 }
