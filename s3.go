@@ -19,9 +19,9 @@ const (
 
 func main() {
 
-	if len(os.Args) < 2 {
-		fmt.Printf("Usage: go run s3.go <the bucket name>\n" +
-			"Example: go run s3.go my-test-bucket\n")
+	if len(os.Args) < 3 {
+		fmt.Printf("Usage: go run s3.go <the bucket name> <the file name>\n" +
+			"Example: go run s3.go my-test-bucket my-upload-file\n")
 		os.Exit(1)
 	}
 
@@ -36,7 +36,7 @@ func main() {
 
 	listMyBuckets(svc)
 	createMyBucket(svc, os.Args[1], Region)
-	uploadObj(svc, os.Args[1], "tt")
+	uploadObj(svc, os.Args[1], os.Args[2])
 	listObj(svc, os.Args[1])
 	listMyBuckets(svc)
 	deleteMyBucket(svc, os.Args[1])
@@ -50,7 +50,7 @@ func listMyBuckets(svc *s3.S3) {
 		exitErrorf("Unable to list buckets, %v", err)
 	}
 
-	fmt.Println("My buckets now are:\n")
+	fmt.Println("My buckets now are:")
 
 	for _, b := range result.Buckets {
 		fmt.Printf(aws.StringValue(b.Name) + "\n")
