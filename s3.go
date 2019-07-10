@@ -116,7 +116,7 @@ func uploadObj(svc *s3.S3, bucket, filename string) {
 	if err != nil {
 		exitErrorf("Unable to upload %q to %q, %v", filename, bucket, err)
 	}
-	fmt.Printf("Successfully uploaded %q to %q\n", filename, bucket)
+	fmt.Printf("\nSuccessfully uploaded %q to %q\n", filename, bucket)
 }
 
 func listObj(svc *s3.S3, bucket string) {
